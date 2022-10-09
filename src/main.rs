@@ -36,6 +36,12 @@ async fn get_feed(client: &Client, url: &str) -> anyhow::Result<Channel> {
     let channel = Channel::read_from(&content[..])?;
     Ok(channel)
 }
+fn get_feed_by_file(path: PathBuf) -> anyhow::Result<Channel> {
+    let file = File::open(path).expect("no such file");
+    let buf_reader = BufReader::new(file);
+    let channel = Channel::read_from(buf_reader)?;
+    Ok(channel)
+}
 
 fn get_rss_dict(path: Option<PathBuf>) -> anyhow::Result<HashMap<String, Vec<RssConfig>>> {
     let file = if let Some(p) = path {

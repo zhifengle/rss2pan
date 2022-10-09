@@ -115,6 +115,22 @@ impl Yiyiwu {
 
         Ok(res)
     }
+    pub async fn get_upload_info(&self) -> Result<Value> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.append("host", "115.com".parse().unwrap());
+        Ok(self
+            .client
+            .get("https://proapi.115.com/app/uploadinfo")
+            .send()
+            .await?
+            .json()
+            .await?)
+    }
+    pub async fn is_logged(&self) -> bool {
+        let s = self.get_upload_info().await.unwrap();
+        let n = s["errno"].as_u64().unwrap();
+        n == 0
+    }
 }
 
 #[cfg(test)]
@@ -126,6 +142,14 @@ mod tests {
         let yiyiwu = Yiyiwu::new();
         let s = yiyiwu.get_sign().await;
         assert!(s.is_ok());
+    }
+    #[tokio::test]
+    async fn t_get_upload_info() {
+        let yiyiwu = Yiyiwu::new();
+        let s = yiyiwu.get_upload_info().await;
+        assert!(s.is_ok());
+        let s = s.unwrap();
+        let _n = s["errno"].as_u64().unwrap();
     }
     #[tokio::test]
     async fn t_add_url() {

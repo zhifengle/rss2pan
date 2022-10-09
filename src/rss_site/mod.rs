@@ -1,6 +1,8 @@
+mod dmhy;
 mod mikanani;
 mod nyaa;
 
+pub use dmhy::*;
 pub use mikanani::*;
 pub use nyaa::*;
 use rss::Item;
@@ -31,6 +33,7 @@ pub fn get_site(name: &str) -> Box<dyn MagnetSite> {
     match name {
         "mikanani.me" => Box::new(Mikanani),
         "nyaa.si" => Box::new(Nyaa),
+        "share.dmhy.org" => Box::new(Dmhy),
         _ => panic!("invalid name"),
     }
 }
