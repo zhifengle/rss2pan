@@ -123,17 +123,13 @@ impl Yiyiwu {
             .json()
             .await?)
     }
-    pub async fn add_batch_task(
-        &self,
-        tasks: &Vec<String>,
-        cid: Option<String>,
-    ) -> Result<Response> {
+    pub async fn add_batch_task(&self, tasks: &[&str], cid: Option<String>) -> Result<Response> {
         let mut data: FormData = HashMap::new();
         if let Some(cid) = cid {
             data.insert("wp_path_id".to_string(), cid);
         }
         for (i, task) in tasks.iter().enumerate() {
-            data.insert(format!("url[{}]", i), task.clone());
+            data.insert(format!("url[{}]", i), task.to_string());
         }
 
         let res = self

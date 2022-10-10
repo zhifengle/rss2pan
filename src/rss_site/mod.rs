@@ -30,6 +30,14 @@ pub struct MagnetItem {
 }
 
 pub fn get_site(name: &str) -> Box<dyn MagnetSite> {
+    let site: String = if name.starts_with("http") {
+        let url_obj = url::Url::parse(name).unwrap();
+        url_obj.host_str().unwrap().to_string()
+    } else {
+        name.to_string()
+    };
+    let name = site.as_str();
+
     match name {
         "mikanani.me" => Box::new(Mikanani),
         "nyaa.si" => Box::new(Nyaa),
