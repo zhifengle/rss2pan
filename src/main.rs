@@ -5,6 +5,7 @@ mod rss_config;
 mod rss_site;
 mod yiyiwu;
 
+use app::build_app;
 use db::RssService;
 use reqwest::Client;
 use rss::Channel;
@@ -17,9 +18,14 @@ use std::path::PathBuf;
 use crate::request::build_proxy_client;
 use crate::rss_config::RssConfig;
 use crate::rss_site::get_site;
+use crate::yiyiwu::Yiyiwu;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    let app = build_app();
+    let matches = app.get_matches();
+    let yiyiwu = Yiyiwu::from_matches(&matches);
+
     let client = build_proxy_client();
     let service = RssService::new();
 
