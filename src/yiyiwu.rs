@@ -20,10 +20,10 @@ struct Sign {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Response {
     pub errcode: u32,
-    pub errno: u32,
-    pub errtype: String,
-    // pub state: bool,
-    // pub error_msg: String,
+    pub errno: Option<u32>,
+    // pub errtype: String,
+    pub state: Option<bool>,
+    pub error_msg: Option<String>,
 }
 
 fn get_default_headers() -> HeaderMap {

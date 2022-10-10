@@ -22,6 +22,8 @@ use crate::yiyiwu::Yiyiwu;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    env_logger::init();
+    std::env::set_var("RUST_LOG", "info");
     let app = build_app();
     let matches = app.get_matches();
     let yiyiwu = Yiyiwu::from_matches(&matches);
@@ -97,13 +99,30 @@ async fn execute_rss_task(
                         item_list.push(m)
                     }
                 }
+                if item_list.len() == 0 {
+                    continue;
+                }
+                log::info!("[{}] add {} task", k, item_list.len());
                 let tasks: Vec<&str> = item_list.iter().map(|item| &*item.magnet).collect();
                 let res = yiyiwu.add_batch_task(&tasks, config.cid.clone()).await?;
-                if res.errcode == 0 {
-                    service.save_items(&item_list)?;
-                } else {
-                    return Err(anyhow::format_err!("115 abnoraml operation"));
-                }
+                match res.errcode {
+                    0 => {
+                        service.save_items(&item_list)?;
+                    }
+                    911 => {
+                        log::error!("[115] response {:?}", res);
+                        return Err(anyhow::format_err!("115 abnoraml operation"));
+                    }
+                    10004 => {
+                        log::warn!("[115] wrong links");
+                    }
+                    10008 => {
+                        log::warn!("[115] task exist");
+                    }
+                    _ => {
+                        log::error!("[115] response {:?}", res);
+                    }
+                };
             }
         }
     }

@@ -14,6 +14,6 @@ TODO
 
 - [x] 115 离线功能
 - [ ] 初始化 sqlite 数据
-- [ ] 实现 cli
+- [x] 实现 cli
 - [ ] proxy 配置
   - 目前写死在 build_proxy_client 里面
