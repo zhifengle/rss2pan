@@ -41,6 +41,7 @@ pub fn get_site(name: &str) -> Box<dyn MagnetSite> {
     match name {
         "mikanani.me" => Box::new(Mikanani),
         "nyaa.si" => Box::new(Nyaa),
+        "sukebei.nyaa.si" => Box::new(Nyaa),
         "share.dmhy.org" => Box::new(Dmhy),
         _ => panic!("invalid name"),
     }

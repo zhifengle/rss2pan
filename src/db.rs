@@ -44,14 +44,17 @@ impl RssService {
         // let conn = Box::new(Connection::open_in_memory().expect("invalid db path"));
         Self { conn }
     }
-    pub fn save_items(&self, items: &[MagnetItem]) -> Result<()> {
-        let now: DateTime<Utc> = Utc::now() + FixedOffset::east(8 * 3600);
+    pub fn save_items(&self, items: &[MagnetItem], done: bool) -> Result<()> {
+        let now: DateTime<Utc> = Utc::now();
+        // let now: DateTime<Utc> = Utc::now() + FixedOffset::east(8 * 3600);
+        let done = (done as u8).to_string();
         for item in items {
-            self.conn.execute("INSERT INTO rss_items (`link`,`title`,`content`,`magnet`,`createdAt`,`updatedAt`) VALUES (?,?,?,?,?,?)", [
+            self.conn.execute("INSERT INTO rss_items (`link`,`title`,`content`,`magnet`,`done`,`createdAt`,`updatedAt`) VALUES (?,?,?,?,?,?,?)", [
                 &item.link,
                 &item.title,
                 item.content.as_deref().unwrap_or(""),
                 &item.magnet,
+                &done,
                 &now.to_string(),
                 &now.to_string(),
             ])?;

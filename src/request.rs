@@ -18,15 +18,9 @@ pub fn build_proxy_client() -> reqwest::Client {
     } else if env::var("HTTPS_PROXY").is_ok() {
         proxy_url = env::var("HTTPS_PROXY").unwrap();
     }
-    let mut headers = HeaderMap::new();
-    headers.insert(
-            "User-Agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36"
-                .parse()
-                .unwrap(),
-        );
+    let ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36";
     let client = reqwest::ClientBuilder::new()
-        .default_headers(headers)
+        .user_agent(ua)
         .proxy(reqwest::Proxy::all(proxy_url).unwrap())
         .build()
         .unwrap();
@@ -34,15 +28,9 @@ pub fn build_proxy_client() -> reqwest::Client {
 }
 
 pub fn build_client() -> reqwest::Client {
-    let mut headers = HeaderMap::new();
-    headers.insert(
-            "User-Agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36"
-                .parse()
-                .unwrap(),
-        );
+    let ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36";
     let client = reqwest::ClientBuilder::new()
-        .default_headers(headers)
+        .user_agent(ua)
         .build()
         .unwrap();
     client
@@ -67,8 +55,11 @@ fn get_site_config(filename: Option<PathBuf>) -> serde_json::Value {
                 return serde_json::from_str(&contents).unwrap();
             } else {
                 let filename = dirs::home_dir().unwrap().join(filename);
-                let contents = std::fs::read_to_string(filename).unwrap();
-                return serde_json::from_str(&contents).unwrap();
+                if Path::new(&filename).exists() {
+                    let contents = std::fs::read_to_string(filename).unwrap();
+                    return serde_json::from_str(&contents).unwrap();
+                }
+                return serde_json::from_str("{}").unwrap();
             }
         }
     };
