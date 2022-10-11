@@ -15,5 +15,36 @@ TODO
 - [x] 115 离线功能
 - [ ] 初始化 sqlite 数据
 - [x] 实现 cli
-- [ ] proxy 配置
-  - 目前写死在 build_proxy_client 里面
+- [x] proxy 配置
+  - ~~目前写死在 build_proxy_client 里面~~
+  - 读取 ALL_PROXY 或者 HTTPS_PROXY 环境变量
+
+## 配置文件 rss.json
+
+```json
+{
+  "mikanani.me": [
+    {
+      "name": "test",
+      "filter": "简体内嵌",
+      "url": "https://mikanani.me/RSS/Bangumi?bangumiId=2739&subgroupid=12"
+    }
+  ]
+}
+```
+
+## node-site-config.json
+
+配置示例
+
+```json
+{
+  "115.com": {
+    "headers": {
+      "Origin": "https://115.com"
+    }
+  }
+}
+```
+
+如果没有在 headers 设置 "cookie": "xxx"。会自动读取 Chrome 的 cookie。
