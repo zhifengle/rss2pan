@@ -39,12 +39,28 @@ TODO
 
 ```json
 {
-  "115.com": {
+  "115.com": {},
+  "share.dmhy.org": {
+    "httpsAgent": "httpsAgent"
+  },
+  "nyaa.si": {
+    "httpsAgent": "httpsAgent"
+  },
+  "sukebei.nyaa.si": {
+    "httpsAgent": "httpsAgent"
+  },
+  "mikanani.me": {
+    "httpsAgent": "httpsAgent",
     "headers": {
-      "Origin": "https://115.com"
+      "Referer": "https://mikanani.me/"
     }
   }
 }
+
 ```
 
 如果没有在 headers 设置 "cookie": "xxx"。会自动读取 Chrome 的 cookie。
+
+设置【httsAgent】会默认使用代理。默认使用的地址 `http://127.0.0.1:10809`。
+
+需要自定义代理时，在命令行设置  set ALL_PROXY=http://youraddr:port
