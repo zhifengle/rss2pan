@@ -92,7 +92,7 @@ impl Ajax {
                 );
             }
             // 使用的小写。目前写死使用 Chrome
-            if headers_config["cookie"].is_null() {
+            if headers_config["cookie"].is_null() && std::env::consts::OS == "windows" {
                 let cookie = gcookie::gcookie_chrome(url, None, None).unwrap();
                 headers.insert("Cookie", cookie.parse().unwrap());
             }

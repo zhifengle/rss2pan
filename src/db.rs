@@ -1,8 +1,7 @@
 use chrono::prelude::*;
 
 use anyhow::Result;
-use rss::Item;
-use rusqlite::{params, Connection, Error, Row};
+use rusqlite::{Connection, Error, Row};
 
 use crate::rss_site::MagnetItem;
 
@@ -17,21 +16,6 @@ pub struct SiteStatus {
     abnormal_op: bool,
 }
 
-impl MagnetItem {
-    pub fn new(item: &Item) -> Self {
-        let link = item.link().unwrap();
-        let idx = link.find("Episode/").unwrap();
-        let magnet = format!("magnet:?xt=urn:btih:{}", &link[idx + 8..]);
-        Self {
-            title: item.title().map_or("".to_string(), |s| s.to_string()),
-            link: link.to_string(),
-            magnet,
-            description: item.description().map(|s| s.to_string()),
-            content: item.content().map(|s| s.to_string()),
-        }
-    }
-}
-
 pub struct RssService {
     conn: Box<Connection>,
 }
@@ -41,6 +25,14 @@ impl RssService {
     pub fn new() -> Self {
         let path = "db.sqlite";
         let conn = Box::new(Connection::open(path).expect("invalid db path"));
+        conn.execute(
+            "CREATE TABLE if not exists `rss_items` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `link` VARCHAR(255), `title` VARCHAR(255), `guid` VARCHAR(255), `pubDate` DATETIME, `creator` VARCHAR(255), `summary` TEXT, `content` VARCHAR(255), `isoDate` DATETIME, `categories` VARCHAR(255), `contentSnippet` VARCHAR(255), `done` TINYINT(1) DEFAULT 0, `magnet` VARCHAR(255) NOT NULL, `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL)",
+            (), // empty list of parameters.
+        ).unwrap();
+        conn.execute(
+            "CREATE TABLE if not exists `sites_status` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255), `needLogin` TINYINT(1), `abnormalOp` TINYINT(1), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL)",
+            (), // empty list of parameters.
+        ).unwrap();
         // let conn = Box::new(Connection::open_in_memory().expect("invalid db path"));
         Self { conn }
     }
@@ -130,11 +122,11 @@ impl RssService {
             Ok((0, 0)) => true,
             Ok(_) => false,
             Err(Error::QueryReturnedNoRows) => {
-                // @TODO
+                let now: DateTime<Utc> = Utc::now();
                 self.conn
                     .execute(
-                        "INSERT INTO sites_status (name, needLogin, abnormalOp) VALUES (?1,0,0)",
-                        [name],
+                        "INSERT INTO sites_status (name,`createdAt`,`updatedAt`,`needLogin`, `abnormalOp`) VALUES (?,?,?,0,0)",
+                        [name, &now.to_string(), &now.to_string()],
                     )
                     .unwrap();
                 true
@@ -175,5 +167,6 @@ mod tests {
         let host = "114.com";
         let service = RssService::new();
         let r = service.is_ready(host);
+        assert!(r);
     }
 }
