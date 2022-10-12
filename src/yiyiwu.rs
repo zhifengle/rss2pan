@@ -1,15 +1,14 @@
 use anyhow::Result;
-use clap::ArgMatches;
-use reqwest::header::HeaderMap;
+use reqwest::{header::HeaderMap, Method, RequestBuilder};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{collections::HashMap, path::PathBuf};
+use std::collections::HashMap;
+
+use crate::{request::Ajax, AJAX_INSTANCE};
 
 type FormData = HashMap<String, String>;
 
-pub struct Yiyiwu {
-    client: reqwest::Client,
-}
+pub struct Yiyiwu;
 
 #[derive(Serialize, Deserialize)]
 struct Sign {
@@ -26,68 +25,18 @@ pub struct Response {
     pub error_msg: Option<String>,
 }
 
-fn get_default_headers() -> HeaderMap {
-    let mut headers = HeaderMap::new();
-    headers.insert(
+impl Yiyiwu {
+    fn gen_req(&self, method: Method, url: &str) -> RequestBuilder {
+        let ajax = AJAX_INSTANCE.get_or_init(|| Ajax::new());
+        ajax.gen_req_host(method, url, "115.com").header(
             "User-Agent",
             "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36 115Browser/23.9.3.6"
-                .parse()
-                .unwrap(),
-        );
-    headers
-}
-fn build_client(cookie: &str) -> reqwest::Client {
-    let mut headers = get_default_headers();
-    headers.insert("Cookie", cookie.parse().unwrap());
-    let client = reqwest::ClientBuilder::new()
-        .default_headers(headers)
-        .build()
-        .unwrap();
+        )
+    }
 
-    client
-}
-impl Yiyiwu {
-    pub fn new() -> Self {
-        let cookie = gcookie::gcookie_chrome("https://115.com/", None, None).unwrap();
-
-        Self {
-            client: build_client(&cookie),
-        }
-    }
-    pub fn from_chrome(browser: Option<&str>, path: Option<&PathBuf>) -> Self {
-        let cookie = gcookie::gcookie_chrome("https://115.com/", browser, path).unwrap();
-        Self {
-            client: build_client(&cookie),
-        }
-    }
-    pub fn from_firefox(path: &PathBuf) -> Self {
-        let cookie = gcookie::gcookie_firefox("https://115.com/", path).unwrap();
-        Self {
-            client: build_client(&cookie),
-        }
-    }
-    pub fn from_matches(matches: &ArgMatches) -> Self {
-        let firefox = matches.get_one::<PathBuf>("firefox");
-        if firefox.is_some() {
-            return Yiyiwu::from_firefox(firefox.unwrap());
-        }
-        let os = std::env::consts::OS;
-        if os != "windows" {
-            panic!("Chrome not supported in {}", os);
-        }
-        let chrome_path = matches.get_one::<PathBuf>("chrome_path");
-        let chrome = matches.get_one::<String>("chrome").unwrap();
-        return Yiyiwu::from_chrome(Some(chrome), chrome_path);
-    }
-    pub fn from_cookie(cookie: &str) -> Self {
-        Self {
-            client: build_client(&cookie),
-        }
-    }
     async fn get_sign(&self) -> Result<Sign> {
         let res: Sign = self
-            .client
-            .get("https://115.com/?ct=offline&ac=space")
+            .gen_req(Method::GET, "https://115.com/?ct=offline&ac=space")
             .header("Accept", "application/json, text/javascript, */*; q=0.01")
             .send()
             .await?
@@ -105,7 +54,7 @@ impl Yiyiwu {
 
             data
         };
-        let mut headers = reqwest::header::HeaderMap::new();
+        let mut headers = HeaderMap::new();
         headers.append(
             "Accept",
             "application/json, text/javascript, */*; q=0.01"
@@ -114,8 +63,7 @@ impl Yiyiwu {
         );
         headers.append("X-Requested-With", "XMLHttpRequest".parse()?);
         Ok(self
-            .client
-            .post(url)
+            .gen_req(Method::POST, url)
             .headers(headers)
             .form(&data)
             .send()
@@ -123,7 +71,11 @@ impl Yiyiwu {
             .json()
             .await?)
     }
+    // 任务已存在  errcode 0; result 里面有存在的任务信息
     pub async fn add_batch_task(&self, tasks: &[&str], cid: Option<String>) -> Result<Response> {
+        if tasks.len() == 1 {
+            return self.add_task_url(tasks[0], cid).await;
+        }
         let mut data: FormData = HashMap::new();
         if let Some(cid) = cid {
             data.insert("wp_path_id".to_string(), cid);
@@ -157,8 +109,7 @@ impl Yiyiwu {
         let mut headers = reqwest::header::HeaderMap::new();
         headers.append("host", "115.com".parse().unwrap());
         Ok(self
-            .client
-            .get("https://proapi.115.com/app/uploadinfo")
+            .gen_req(Method::GET, "https://proapi.115.com/app/uploadinfo")
             .send()
             .await?
             .json()
@@ -177,13 +128,13 @@ mod tests {
 
     #[tokio::test]
     async fn t_get_sign() {
-        let yiyiwu = Yiyiwu::new();
+        let yiyiwu = Yiyiwu;
         let s = yiyiwu.get_sign().await;
         assert!(s.is_ok());
     }
     #[tokio::test]
     async fn t_get_upload_info() {
-        let yiyiwu = Yiyiwu::new();
+        let yiyiwu = Yiyiwu;
         let s = yiyiwu.get_upload_info().await;
         assert!(s.is_ok());
         let s = s.unwrap();
@@ -191,7 +142,7 @@ mod tests {
     }
     #[tokio::test]
     async fn t_add_url() {
-        let yiyiwu = Yiyiwu::new();
+        let yiyiwu = Yiyiwu;
         let s = yiyiwu
             .add_task_url(
                 "magnet:?xt=urn:btih:e6bd034f77af87ccfe062acbf481d34afe089133",

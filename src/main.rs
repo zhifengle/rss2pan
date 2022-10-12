@@ -12,22 +12,23 @@ use request::Ajax;
 use reqwest::Method;
 use rss::Channel;
 use rss_config::{get_rss_dict, RssConfig};
-use rss_site::{MagnetItem, get_site};
-use yiyiwu::Yiyiwu;
+use rss_site::{get_site, MagnetItem};
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
+use yiyiwu::Yiyiwu;
 
 static AJAX_INSTANCE: OnceCell<Ajax> = OnceCell::new();
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    env_logger::init();
     std::env::set_var("RUST_LOG", "info");
-    AJAX_INSTANCE.get_or_init(|| Ajax::new());
+    env_logger::init();
     let app = build_app();
     let matches = app.get_matches();
-    let yiyiwu = Yiyiwu::from_matches(&matches);
+    AJAX_INSTANCE.get_or_init(|| Ajax::from_matches(&matches));
+
+    let yiyiwu = Yiyiwu;
     let service = RssService::new();
 
     let url = matches.get_one::<String>("url");
@@ -35,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
         if let Err(err) = execute_url_task(&service, &yiyiwu, &url.unwrap()).await {
             println!("{}", err);
         }
-        return Ok(())
+        return Ok(());
     }
 
     if let Err(err) = execute_all_rss_task(&service, &yiyiwu).await {
@@ -106,11 +107,11 @@ async fn execute_rss_task(
         if item_list.len() == 0 {
             return Ok(());
         }
-        log::info!("[{}] add {} task", config.url, item_list.len());
         let tasks: Vec<&str> = item_list.iter().map(|item| &*item.magnet).collect();
         let res = yiyiwu.add_batch_task(&tasks, config.cid.clone()).await?;
         match res.errcode {
             0 => {
+                log::info!("[115] [{}] add {} tasks", config.url, item_list.len());
                 service.save_items(&item_list, true)?;
             }
             911 => {

@@ -4,14 +4,16 @@ use std::{
     str::FromStr,
 };
 
-use anyhow::Result;
+use clap::ArgMatches;
+use gcookie::{gcookie_chrome, gcookie_firefox};
+use log::info;
 use reqwest::{
     header::{HeaderMap, HeaderName},
-    Method, RequestBuilder,
+    Client, Method, RequestBuilder,
 };
 use serde_json::Value;
 
-pub fn build_proxy_client() -> reqwest::Client {
+pub fn build_proxy_client() -> Client {
     let mut proxy_url = "http://127.0.0.1:10809".to_string();
     if env::var("ALL_PROXY").is_ok() {
         proxy_url = env::var("ALL_PROXY").unwrap();
@@ -27,7 +29,7 @@ pub fn build_proxy_client() -> reqwest::Client {
     client
 }
 
-pub fn build_client() -> reqwest::Client {
+pub fn build_client() -> Client {
     let ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36";
     let client = reqwest::ClientBuilder::new()
         .user_agent(ua)
@@ -36,10 +38,27 @@ pub fn build_client() -> reqwest::Client {
     client
 }
 
+#[derive(Default, Clone)]
+pub struct CookieConfig {
+    chrome: Option<String>,
+    chrome_path: Option<PathBuf>,
+    firefox_path: Option<PathBuf>,
+}
+impl CookieConfig {
+    pub fn new(matches: &ArgMatches) -> Self {
+        Self {
+            chrome: matches.get_one::<String>("chrome").map(|c| c.to_string()),
+            chrome_path: matches.get_one::<PathBuf>("chrome_path").map(|p| p.clone()),
+            firefox_path: matches.get_one::<PathBuf>("firefox").map(|p| p.clone()),
+        }
+    }
+}
+
 pub struct Ajax {
     inner_client: reqwest::Client,
     inner_client_proxy: reqwest::Client,
     site_config: Value,
+    cookie_config: CookieConfig,
 }
 
 fn get_site_config(filename: Option<PathBuf>) -> serde_json::Value {
@@ -72,11 +91,34 @@ impl Ajax {
             inner_client: build_client(),
             inner_client_proxy: build_proxy_client(),
             site_config: get_site_config(None),
+            cookie_config: CookieConfig::default(),
         }
     }
-    // pub fn add_site_option(&mut self, host: String, option: Value) {
-    //     self.site_config[host] = option;
-    // }
+    pub fn from_matches(matches: &ArgMatches) -> Self {
+        Self {
+            inner_client: build_client(),
+            inner_client_proxy: build_proxy_client(),
+            site_config: get_site_config(None),
+            cookie_config: CookieConfig::new(matches),
+        }
+    }
+    fn get_cookie(&self, url: &str) -> Option<String> {
+        let mut cookie = None;
+        if self.cookie_config.firefox_path.is_some() {
+            info!("get {} cookie from firefox", url);
+            let path = &self.cookie_config.firefox_path.as_ref();
+            if let Ok(c) = gcookie_firefox(url, path.unwrap()) {
+                cookie = Some(c);
+            }
+            return cookie;
+        }
+        let chrome = self.cookie_config.chrome.as_deref();
+        let chrome_path = self.cookie_config.chrome_path.as_ref();
+        if let Ok(c) = gcookie_chrome(url, chrome, chrome_path) {
+            cookie = Some(c);
+        }
+        cookie
+    }
     pub fn gen_req(&self, method: Method, url: &str) -> RequestBuilder {
         let url_obj = url::Url::parse(url).unwrap();
         let host = url_obj.host_str().unwrap().to_string();
@@ -91,10 +133,11 @@ impl Ajax {
                     v.as_str().unwrap().parse().unwrap(),
                 );
             }
-            // 使用的小写。目前写死使用 Chrome
-            if headers_config["cookie"].is_null() && std::env::consts::OS == "windows" {
-                let cookie = gcookie::gcookie_chrome(url, None, None).unwrap();
-                headers.insert("Cookie", cookie.parse().unwrap());
+            // 使用的小写。
+            if headers_config["cookie"].is_null() {
+                if let Some(cookie) = self.get_cookie(url) {
+                    headers.insert("Cookie", cookie.parse().unwrap());
+                }
             }
         }
         if config["httpsAgent"].is_null() {
@@ -106,31 +149,31 @@ impl Ajax {
                 .headers(headers);
         }
     }
-    pub async fn fetch_text(&self, url: &str) -> Result<String> {
-        Ok(self
-            .gen_req(Method::GET, url)
-            .send()
-            .await?
-            .text()
-            //.text_with_charset("utf-8")
-            .await?)
-    }
-    pub async fn fetch_json_form(&self, url: &str, data: &Value) -> Result<Value> {
-        Ok(self
-            .gen_req(Method::POST, url)
-            .form(data)
-            .send()
-            .await?
-            .json()
-            .await?)
-    }
-    pub async fn fetch_json(&self, url: &str, data: &Value) -> Result<Value> {
-        Ok(self
-            .gen_req(Method::POST, url)
-            .json(data)
-            .send()
-            .await?
-            .json()
-            .await?)
+    pub fn gen_req_host(&self, method: Method, url: &str, host: &str) -> RequestBuilder {
+        let config = &self.site_config[host];
+        let mut headers = HeaderMap::new();
+        let headers_config = &config["headers"];
+        if headers_config.is_object() {
+            for (k, v) in headers_config.as_object().unwrap().iter() {
+                headers.insert(
+                    HeaderName::from_str(k.as_str()).unwrap(),
+                    v.as_str().unwrap().parse().unwrap(),
+                );
+            }
+            // 使用的小写。
+            if headers_config["cookie"].is_null() {
+                if let Some(cookie) = self.get_cookie(host) {
+                    headers.insert("Cookie", cookie.parse().unwrap());
+                }
+            }
+        }
+        if config["httpsAgent"].is_null() {
+            return self.inner_client.request(method, url).headers(headers);
+        } else {
+            return self
+                .inner_client_proxy
+                .request(method, url)
+                .headers(headers);
+        }
     }
 }

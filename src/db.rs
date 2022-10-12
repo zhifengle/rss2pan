@@ -1,20 +1,9 @@
 use chrono::prelude::*;
 
 use anyhow::Result;
-use rusqlite::{Connection, Error, Row};
+use rusqlite::{Connection, Error};
 
 use crate::rss_site::MagnetItem;
-
-pub struct MagnetOffline {
-    item_id: u32,
-    yiyiwu: u8,
-}
-
-pub struct SiteStatus {
-    host: String,
-    need_login: bool,
-    abnormal_op: bool,
-}
 
 pub struct RssService {
     conn: Box<Connection>,
@@ -80,25 +69,8 @@ impl RssService {
             },
         )?;
         Ok(item)
-        /*
-        let statement =
-            format!("SELECT link,title,magnet FROM rss_items WHERE magnet = '{magnet}'");
-        let mut stmt = self.conn.prepare(&statement)?;
-        let mut item_iter = stmt.query_map([], |row| {
-            Ok(MagnetItem {
-                link: row.get(0)?,
-                title: row.get(1)?,
-                magnet: row.get(2)?,
-                content: None,
-                description: None,
-            })
-        })?;
-        Ok(match item_iter.next() {
-            Some(row) => Some(row.unwrap()),
-            None => None,
-        })
-        */
     }
+    #[allow(dead_code)]
     pub fn update_status(&self, host: &str, key: &str, value: bool) -> Result<usize> {
         let value: u8 = value.into();
         let value = value.to_string();
@@ -106,12 +78,14 @@ impl RssService {
         let num = self.conn.execute(&stmt, [])?;
         Ok(num)
     }
+    #[allow(dead_code)]
     pub fn reset_status(&self, name: &str) -> Result<usize> {
         let stmt =
             format!("UPDATE sites_status SET abnormalOp = 0,needLogin = 0 WHERE name = \"{name}\"");
         let num = self.conn.execute(&stmt, [])?;
         Ok(num)
     }
+    #[allow(dead_code)]
     pub fn is_ready(&self, name: &str) -> bool {
         let r = self.conn.query_row(
             "SELECT needLogin,abnormalOp FROM sites_status WHERE name = ?1",
