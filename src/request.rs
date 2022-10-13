@@ -160,11 +160,11 @@ impl Ajax {
                     v.as_str().unwrap().parse().unwrap(),
                 );
             }
-            // 使用的小写。
-            if headers_config["cookie"].is_null() {
-                if let Some(cookie) = self.get_cookie(host) {
-                    headers.insert("Cookie", cookie.parse().unwrap());
-                }
+        }
+        // 使用的小写。
+        if config.is_null() || headers_config["cookie"].is_null() {
+            if let Some(cookie) = self.get_cookie(host) {
+                headers.insert("Cookie", cookie.parse().unwrap());
             }
         }
         if config["httpsAgent"].is_null() {

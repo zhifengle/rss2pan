@@ -71,7 +71,6 @@ cid 是离线到指定的文件夹的id 。
 
 ```json
 {
-  "115.com": {},
   "share.dmhy.org": {
     "httpsAgent": "httpsAgent"
   },
@@ -90,7 +89,7 @@ cid 是离线到指定的文件夹的id 。
 }
 ```
 
-Windows 下 如果没有在 headers 设置 "cookie": "xxx"。会自动读取 Chrome 的 cookie。
+Windows 下 如果设置了 headers, 但是没在headers里面设置 "cookie": "xxx"。会自动读取命令行指定浏览器的 cookie。默认使用 Chrome
 
 设置【httsAgent】会使用代理。默认使用的地址 `http://127.0.0.1:10809`。
 
