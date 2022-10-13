@@ -4,6 +4,7 @@ mod request;
 mod rss_config;
 mod rss_site;
 mod yiyiwu;
+mod downloader;
 
 use app::build_app;
 use db::RssService;
@@ -108,6 +109,8 @@ async fn execute_rss_task(
             return Ok(());
         }
         let tasks: Vec<&str> = item_list.iter().map(|item| &*item.magnet).collect();
+        // @TODO 并行？
+        // https://stackoverflow.com/questions/51044467/how-can-i-perform-parallel-asynchronous-http-get-requests-with-reqwest
         let res = yiyiwu.add_batch_task(&tasks, config.cid.clone()).await?;
         match res.errcode {
             0 => {
