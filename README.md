@@ -17,6 +17,8 @@
   - ~~目前写死在 build_proxy_client 里面~~
   - 读取 ALL_PROXY 或者 HTTPS_PROXY 环境变量
 - [ ] 正则过滤 filter
+- [ ] Windows 定时任务
+  - ~~懒得写了，我是手动配置的~~
 
 ## 用法
 
@@ -35,7 +37,10 @@ rss2pan -c Edge
 rss2pan -u "https://mikanani.me/RSS/Bangumi?bangumiId=2739&subgroupid=12"
 ```
 
-## Examples
+## 注意
+日志报 `115 abnoraml operation` 时，说明账号触发了异常验证，需要在浏览器端手动离线，输入验证码后解除。
+
+暂时没有想到好的方法处理。现在想到的方式打印一个 URL，打开这个 URL，配合油猴脚本触发验证码。
 
 ## 配置文件 rss.json
 
@@ -92,7 +97,25 @@ cid 是离线到指定的文件夹的id 。
 Windows 下 如果设置了 headers, 但是没在headers里面设置 "cookie": "xxx"。会自动读取命令行指定浏览器的 cookie。默认使用 Chrome
 
 设置【httsAgent】会使用代理。默认使用的地址 `http://127.0.0.1:10809`。
+> 【httsAgent】沿用的 node 版的配置。
 
 需要自定义代理时，在命令行设置 Windows: set ALL_PROXY=http://youraddr:port
 
 > Linux: export ALL_PROXY=http://youraddr:port
+
+```batch
+@ECHO off
+SETLOCAL
+CALL :find_dp0
+REM 把下面一行修改成自己的代理。然后取消注释。
+REM set ALL_PROXY=http://youraddr:port
+rss2pan.exe  %*
+ENDLOCAL
+EXIT /b %errorlevel%
+:find_dp0
+SET dp0=%~dp0
+EXIT /b
+```
+把上面的 batch 例子改成自己的代理地址。另存为 rss2pan.cmd 和 rss2pan.exe 放在一个目录下面。
+
+在命令行运行 rss2pan.cmd 就能够使用自己的代理的了。
