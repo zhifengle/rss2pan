@@ -108,35 +108,37 @@ async fn execute_rss_task(
         if item_list.len() == 0 {
             return Ok(());
         }
-        let tasks: Vec<&str> = item_list.iter().map(|item| &*item.magnet).collect();
-        // @TODO 并行？
-        // https://stackoverflow.com/questions/51044467/how-can-i-perform-parallel-asynchronous-http-get-requests-with-reqwest
-        let res = yiyiwu.add_batch_task(&tasks, config.cid.clone()).await?;
-        match res.errcode {
-            0 => {
-                log::info!(
-                    "[115] [{}] [{}] add {} tasks",
-                    config.name,
-                    config.url,
-                    item_list.len()
-                );
-                service.save_items(&item_list, true)?;
-            }
-            911 => {
-                log::error!("[115] response {:?}", res);
-                return Err(anyhow::format_err!("115 abnoraml operation"));
-            }
-            10004 => {
-                log::warn!("[115] wrong links");
-            }
-            10008 => {
-                log::warn!("[115] task exist");
-                service.save_items(&item_list, true)?;
-            }
-            _ => {
-                log::error!("[115] response {:?}", res);
-            }
-        };
+        for chunk in item_list.chunks(200) {
+            let tasks: Vec<&str> = chunk.iter().map(|item| &*item.magnet).collect();
+            // @TODO 并行？
+            // https://stackoverflow.com/questions/51044467/how-can-i-perform-parallel-asynchronous-http-get-requests-with-reqwest
+            let res = yiyiwu.add_batch_task(&tasks, config.cid.clone()).await?;
+            match res.errcode {
+                0 => {
+                    log::info!(
+                        "[115] [{}] [{}] add {} tasks",
+                        config.name,
+                        config.url,
+                        chunk.len()
+                    );
+                    service.save_items(chunk, true)?;
+                }
+                911 => {
+                    log::error!("[115] response {:?}", res);
+                    return Err(anyhow::format_err!("115 abnoraml operation"));
+                }
+                10004 => {
+                    log::warn!("[115] wrong links");
+                }
+                10008 => {
+                    log::warn!("[115] task exist");
+                    service.save_items(chunk, true)?;
+                }
+                _ => {
+                    log::error!("[115] response {:?}", res);
+                }
+            };
+        }
     }
 
     Ok(())
