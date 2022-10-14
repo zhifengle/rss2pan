@@ -65,6 +65,8 @@ rss2pan -u "https://mikanani.me/RSS/Bangumi?bangumiId=2739&subgroupid=12"
 ```
 
 配置了 `filter` 后，标题包含该文字的会被离线
+
+
 cid 是离线到指定的文件夹的id 。
 获取方法: 浏览器打开115的文件，地址栏像 `https://115.com/?cid=2479224057885794455&offset=0&tab=&mode=wangpan`
 
