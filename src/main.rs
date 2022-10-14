@@ -1,10 +1,10 @@
 mod app;
 mod db;
+mod downloader;
 mod request;
 mod rss_config;
 mod rss_site;
 mod yiyiwu;
-mod downloader;
 
 use app::build_app;
 use db::RssService;
@@ -114,7 +114,12 @@ async fn execute_rss_task(
         let res = yiyiwu.add_batch_task(&tasks, config.cid.clone()).await?;
         match res.errcode {
             0 => {
-                log::info!("[115] [{}] add {} tasks", config.url, item_list.len());
+                log::info!(
+                    "[115] [{}] [{}] add {} tasks",
+                    config.name,
+                    config.url,
+                    item_list.len()
+                );
                 service.save_items(&item_list, true)?;
             }
             911 => {
