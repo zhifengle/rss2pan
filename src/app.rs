@@ -29,7 +29,7 @@ pub fn build_app() -> Command<'static> {
 fn t_cmd() {
     let cmd = build_app();
     let matches = cmd.clone().try_get_matches_from(["rss2pan", "-m"]).unwrap();
-    assert!(matches.contains_id("concurrent"));
+    assert_eq!(matches.get_one::<bool>("concurrent").copied(), Some(true));
     let matches = cmd.clone().try_get_matches_from(["rss2pan"]).unwrap();
     assert_eq!(matches.get_one::<bool>("concurrent").copied(), Some(false));
 }

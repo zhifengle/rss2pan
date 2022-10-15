@@ -140,7 +140,16 @@ impl Yiyiwu {
                 .filter(|item| !service.has_item(&item.magnet))
                 .map(|item| &*item.magnet)
                 .collect();
-            // log::debug!("tasks: {:?}", tasks);
+            // 测试用的开关
+            if std::env::var("RSS2PAN_LOG").is_ok() {
+                log::info!(
+                    "[RSS2PAN_LOG] [{}] [{}] has {} tasks",
+                    config.name,
+                    config.url,
+                    tasks.len()
+                );
+                continue;
+            }
             if tasks.len() == 0 {
                 log::info!("[{}] has 0 task", config.name);
                 continue;

@@ -33,7 +33,7 @@ async fn main() -> anyhow::Result<()> {
         }
         return Ok(());
     }
-    if matches.contains_id("concurrent") {
+    if matches.get_one::<bool>("concurrent").copied() == Some(true) {
         if let Err(err) = execute_tasks(&service).await {
             println!("{}", err);
         }
