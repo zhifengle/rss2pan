@@ -142,7 +142,7 @@ impl Yiyiwu {
                 .collect();
             // log::debug!("tasks: {:?}", tasks);
             if tasks.len() == 0 {
-                log::info!("[{}] [{}] has 0 task", config.name, config.url,);
+                log::info!("[{}] has 0 task", config.name);
                 continue;
             }
             let res = self.add_batch_task(&tasks, config.cid.clone()).await?;
@@ -188,7 +188,6 @@ pub async fn execute_url_task(service: &RssService, url: &str) -> anyhow::Result
     Ok(())
 }
 
-/*
 pub async fn execute_all_rss_task(service: &RssService) -> anyhow::Result<()> {
     let yiyiwu = Yiyiwu;
     if !yiyiwu.is_logged().await {
@@ -203,7 +202,6 @@ pub async fn execute_all_rss_task(service: &RssService) -> anyhow::Result<()> {
     }
     Ok(())
 }
-*/
 
 pub async fn execute_tasks(service: &RssService) -> anyhow::Result<()> {
     let yiyiwu = Yiyiwu;

@@ -10,13 +10,15 @@ use app::build_app;
 use db::RssService;
 use once_cell::sync::OnceCell;
 use request::Ajax;
-use yiyiwu::{execute_url_task, execute_tasks};
+use yiyiwu::{execute_tasks, execute_url_task, execute_all_rss_task};
 
 static AJAX_INSTANCE: OnceCell<Ajax> = OnceCell::new();
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    std::env::set_var("RUST_LOG", "info");
+    if std::env::var("RUST_LOG").is_err() {
+        std::env::set_var("RUST_LOG", "info");
+    }
     env_logger::init();
     let app = build_app();
     let matches = app.get_matches();
@@ -31,9 +33,14 @@ async fn main() -> anyhow::Result<()> {
         }
         return Ok(());
     }
-
-    if let Err(err) = execute_tasks(&service).await {
-        println!("{}", err);
+    if matches.contains_id("concurrent") {
+        if let Err(err) = execute_tasks(&service).await {
+            println!("{}", err);
+        }
+    } else {
+        if let Err(err) = execute_all_rss_task(&service).await {
+            println!("{}", err);
+        }
     }
 
     Ok(())
