@@ -1,10 +1,17 @@
 use anyhow::Result;
+use futures::future;
 use reqwest::{header::HeaderMap, Method, RequestBuilder};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 
-use crate::{request::Ajax, AJAX_INSTANCE};
+use crate::{
+    db::RssService,
+    request::Ajax,
+    rss_config::{get_rss_config_by_url, get_rss_dict, RssConfig},
+    rss_site::{get_magnetitem_list, MagnetItem},
+    AJAX_INSTANCE,
+};
 
 type FormData = HashMap<String, String>;
 
@@ -120,6 +127,105 @@ impl Yiyiwu {
         let n = s["errno"].as_u64().unwrap();
         n == 0
     }
+
+    pub async fn execute_task(
+        &self,
+        service: &RssService,
+        item_list: &[MagnetItem],
+        config: &RssConfig,
+    ) -> anyhow::Result<()> {
+        for chunk in item_list.chunks(200) {
+            let tasks: Vec<&str> = chunk
+                .iter()
+                .filter(|item| !service.has_item(&item.magnet))
+                .map(|item| &*item.magnet)
+                .collect();
+            // log::debug!("tasks: {:?}", tasks);
+            if tasks.len() == 0 {
+                log::info!("[{}] [{}] has 0 task", config.name, config.url,);
+                continue;
+            }
+            let res = self.add_batch_task(&tasks, config.cid.clone()).await?;
+            match res.errcode {
+                0 => {
+                    log::info!(
+                        "[{}] [{}] add {} tasks",
+                        config.name,
+                        config.url,
+                        chunk.len()
+                    );
+                    service.save_items(chunk, true)?;
+                }
+                911 => {
+                    log::error!("response {:?}", res);
+                    return Err(anyhow::format_err!("115 abnoraml operation"));
+                }
+                10004 => {
+                    log::warn!("wrong links");
+                }
+                10008 => {
+                    log::warn!("task exist");
+                    service.save_items(chunk, true)?;
+                }
+                _ => {
+                    log::error!("response {:?}", res);
+                }
+            };
+        }
+        Ok(())
+    }
+}
+
+pub async fn execute_url_task(service: &RssService, url: &str) -> anyhow::Result<()> {
+    let yiyiwu = Yiyiwu;
+    if !yiyiwu.is_logged().await {
+        return Err(anyhow::format_err!("115 need login"));
+    }
+    let config = get_rss_config_by_url(url)?;
+
+    let item_list = get_magnetitem_list(&config).await;
+    yiyiwu.execute_task(service, &item_list, &config).await?;
+    Ok(())
+}
+
+/*
+pub async fn execute_all_rss_task(service: &RssService) -> anyhow::Result<()> {
+    let yiyiwu = Yiyiwu;
+    if !yiyiwu.is_logged().await {
+        return Err(anyhow::format_err!("115 need login"));
+    }
+    let rss_dict = get_rss_dict(None)?;
+    for (_, v) in rss_dict.iter() {
+        for config in v.iter() {
+            let item_list = get_magnetitem_list(config).await;
+            yiyiwu.execute_task(service, &item_list, config).await?;
+        }
+    }
+    Ok(())
+}
+*/
+
+pub async fn execute_tasks(service: &RssService) -> anyhow::Result<()> {
+    let yiyiwu = Yiyiwu;
+    if !yiyiwu.is_logged().await {
+        return Err(anyhow::format_err!("115 need login"));
+    }
+    let rss_dict = get_rss_dict(None)?;
+    let task_list = future::join_all(rss_dict.into_iter().map(|(_, v)| async move {
+        let mut task_list: Vec<(RssConfig, Vec<MagnetItem>)> = Vec::with_capacity(v.len());
+        for config in v.into_iter() {
+            let item_list = get_magnetitem_list(&config).await;
+            task_list.push((config, item_list))
+        }
+        task_list
+    }))
+    .await;
+    for task in task_list {
+        for (config, item_list) in task {
+            yiyiwu.execute_task(service, &item_list, &config).await?
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]

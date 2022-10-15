@@ -53,6 +53,7 @@ impl RssService {
             .unwrap();
         item > 0
     }
+    #[allow(dead_code)]
     pub fn get_item_by_magnet(&self, magnet: &str) -> Result<MagnetItem> {
         // 本质上是调用的 next 取第一个; LIMIT 1 不需要
         let item = self.conn.query_row(
@@ -70,6 +71,7 @@ impl RssService {
         )?;
         Ok(item)
     }
+    // @TODO 网站状态
     #[allow(dead_code)]
     pub fn update_status(&self, host: &str, key: &str, value: bool) -> Result<usize> {
         let value: u8 = value.into();

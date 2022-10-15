@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
-use clap::{arg, Command};
+use clap::{arg, Command, crate_version};
 
 pub fn build_app() -> Command<'static> {
     let app = Command::new("rss2pan")
-        .version("0.1.0")
+        .version(crate_version!())
         .about("rss to pan")
         // .arg(arg!(-r --rss [rss] "rss json").default_value("rss.json"))
         .arg(arg!(-u --url [url] "rss url"))
