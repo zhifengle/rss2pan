@@ -61,6 +61,20 @@ rss2pan -u "https://mikanani.me/RSS/Bangumi?bangumiId=2739&subgroupid=12"
       "url": "https://mikanani.me/RSS/Bangumi?bangumiId=2739&subgroupid=12"
     }
   ],
+  "nyaa.si": [
+    {
+      "name": "VCB-Studio",
+      "cid: "2479224057885794455",
+      "url": "https://nyaa.si/?page=rss&u=VCB-Studio"
+    }
+  ],
+  "sukebei.nyaa.si": [
+    {
+      "name": "hikiko123",
+      "cid: "2479224057885794455",
+      "url": "https://sukebei.nyaa.si/?page=rss&u=hikiko123"
+    }
+  ],
   "share.dmhy.org": [
     {
       "name": "水星的魔女",
