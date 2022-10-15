@@ -30,6 +30,10 @@
 ```bash
 # 查看帮助
 rss2pan -h
+# 直接运行。读取 rss.json，进行添加离线任务
+rss2pan
+# 并发请求 rss 网站。然后再添加 115 离线任务
+rss2pan -m
 # 读取和使用 Edge 的 cookie
 rss2pan -c Edge
 
@@ -38,12 +42,15 @@ rss2pan -c Edge
 rss2pan -u "https://mikanani.me/RSS/Bangumi?bangumiId=2739&subgroupid=12"
 ```
 
-## 注意
+### 注意
+
 日志报 `115 abnoraml operation` 时，说明账号触发了异常验证，需要在浏览器端手动离线，输入验证码后解除。
 
 暂时没有想到好的方法处理。现在想到的方式打印一个 URL，打开这个 URL，配合油猴脚本触发验证码。
 
-## 配置文件 rss.json
+## 配置
+
+### 配置文件 rss.json
 
 ```json
 {
@@ -65,15 +72,15 @@ rss2pan -u "https://mikanani.me/RSS/Bangumi?bangumiId=2739&subgroupid=12"
 }
 ```
 
-配置了 `filter` 后，标题包含该文字的会被离线
+配置了 `filter` 后，标题包含该文字的会被离线。不设置 `filter` 默认离线全部
+> 正则功能还没写
 
-
-cid 是离线到指定的文件夹的id 。
-获取方法: 浏览器打开115的文件，地址栏像 `https://115.com/?cid=2479224057885794455&offset=0&tab=&mode=wangpan`
+cid 是离线到指定的文件夹的 id 。
+获取方法: 浏览器打开 115 的文件，地址栏像 `https://115.com/?cid=2479224057885794455&offset=0&tab=&mode=wangpan`
 
 > 其中 2479224057885794455 就是 cid
 
-## node-site-config.json
+### node-site-config.json 配置
 
 配置示例
 
@@ -97,9 +104,26 @@ cid 是离线到指定的文件夹的id 。
 }
 ```
 
-Windows 下 如果设置了 headers, 但是没在headers里面设置 "cookie": "xxx"。会自动读取命令行指定浏览器的 cookie。默认使用 Chrome
+#### cookie 配置
+
+Windows 下 如果设置了 headers, 但是没在 headers 里面设置 "cookie": "xxx"。会自动读取命令行指定浏览器的 cookie。默认使用 Chrome
+
+Linux 下使用，必须配置 115 的 cookie。或者指定 Firefox 目录读取 cookie(这项功能我没测试)
+
+```json
+{
+  "115.com": {
+    "headers": {
+      "cookie": "yourcookie"
+    }
+  }
+}
+```
+
+### proxy 配置
 
 设置【httsAgent】会使用代理。默认使用的地址 `http://127.0.0.1:10809`。
+
 > 【httsAgent】沿用的 node 版的配置。
 
 需要自定义代理时，在命令行设置 Windows: set ALL_PROXY=http://youraddr:port
@@ -110,7 +134,6 @@ Windows 下 如果设置了 headers, 但是没在headers里面设置 "cookie": "
 @ECHO off
 SETLOCAL
 CALL :find_dp0
-REM 把下面一行修改成自己的代理。然后取消注释。
 REM set ALL_PROXY=http://youraddr:port
 rss2pan.exe  %*
 ENDLOCAL
@@ -119,6 +142,11 @@ EXIT /b %errorlevel%
 SET dp0=%~dp0
 EXIT /b
 ```
+
 把上面的 batch 例子改成自己的代理地址。另存为 rss2pan.cmd 和 rss2pan.exe 放在一个目录下面。
 
 在命令行运行 rss2pan.cmd 就能够使用自己的代理的了。
+
+### 日志的环境变量
+
+不想看日志时，Windows: set RUST_LOG=error
