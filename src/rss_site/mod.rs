@@ -71,28 +71,28 @@ pub async fn get_feed(url: &str) -> anyhow::Result<Channel> {
 pub async fn get_magnetitem_list(config: &RssConfig) -> Vec<MagnetItem> {
     let site = get_site(&config.url);
     if let Ok(channel) = get_feed(&config.url).await {
-        let mut item_list: Vec<MagnetItem> = Vec::with_capacity(channel.items().len());
-        for item in channel.items() {
-            let m = site.get_magnet_item(item);
-            let mut flag = true;
-            if let Some(pat) = &config.filter {
-                if pat.starts_with("/") && pat.ends_with("/") {
-                    let re = Regex::new(&pat[1..pat.len() - 1]);
-                    match re {
-                        Ok(re) => {
-                            flag = re.is_match(&m.title);
+        channel
+            .items()
+            .iter()
+            .map(|item| site.get_magnet_item(item))
+            .filter(|m| {
+                let mut flag = true;
+                if let Some(pat) = &config.filter {
+                    if pat.starts_with("/") && pat.ends_with("/") {
+                        let re = Regex::new(&pat[1..pat.len() - 1]);
+                        match re {
+                            Ok(re) => {
+                                flag = re.is_match(&m.title);
+                            }
+                            Err(_) => {}
                         }
-                        Err(_) => {}
+                    } else {
+                        flag = m.title.contains(pat);
                     }
-                } else {
-                    flag = m.title.contains(pat);
                 }
-            }
-            if flag {
-                item_list.push(m)
-            }
-        }
-        item_list
+                flag
+            })
+            .collect()
     } else {
         vec![]
     }
