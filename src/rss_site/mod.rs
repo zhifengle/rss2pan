@@ -2,6 +2,7 @@ mod dmhy;
 mod mikanani;
 mod nyaa;
 
+use regex::Regex;
 use reqwest::Method;
 use rss::{Channel, Item};
 use std::io::BufReader;
@@ -75,7 +76,17 @@ pub async fn get_magnetitem_list(config: &RssConfig) -> Vec<MagnetItem> {
             let m = site.get_magnet_item(item);
             let mut flag = true;
             if let Some(pat) = &config.filter {
-                flag = m.title.contains(pat);
+                if pat.starts_with("/") && pat.ends_with("/") {
+                    let re = Regex::new(&pat[1..pat.len() - 1]);
+                    match re {
+                        Ok(re) => {
+                            flag = re.is_match(&m.title);
+                        }
+                        Err(_) => {}
+                    }
+                } else {
+                    flag = m.title.contains(pat);
+                }
             }
             if flag {
                 item_list.push(m)
@@ -115,5 +126,16 @@ mod tests {
             .collect();
         let res = service.save_items(&items, true);
         assert!(res.is_ok());
+    }
+    #[test]
+    fn test_re() {
+        let str_list = [
+            "[7月新番][传颂之物 二人的白皇][Utawarerumono - Futari no Hakuoro][09][1080P][MP4][GB][简中] [241.72 MB]",
+            "【幻樱字幕组】【7月新番】【传颂之物 二人白皇 Utawarerumono-Futari no Hakuoro-】【16】【BIG5_MP4】【1920X1080】 [321.13 MB]",
+            "[动漫国字幕组&澄空学园&LoliHouse] 传颂之物 二人的白皇 / Utawarerumono Futari no Hakuoro - 16 [WebRip 1080p HEVC-10bit AAC][简繁外挂字幕] [485.4 MB]"
+        ];
+        let pat = "/澄空学园|幻樱|\\d{4}[p]/";
+        let re = Regex::new(&pat[1..pat.len() - 1]).unwrap();
+        assert_eq!(str_list.map(|s| re.is_match(s)), [true, true, true]);
     }
 }

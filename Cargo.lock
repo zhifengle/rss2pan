@@ -1154,6 +1154,7 @@ dependencies = [
  "gcookie",
  "log",
  "once_cell",
+ "regex",
  "reqwest",
  "rss",
  "rusqlite",

@@ -16,7 +16,7 @@
 - [x] proxy 配置
   - ~~目前写死在 build_proxy_client 里面~~
   - 读取 ALL_PROXY 或者 HTTPS_PROXY 环境变量
-- [ ] 正则过滤 filter
+- [x] 正则过滤 filter
 - [ ] Windows 定时任务
   - ~~懒得写了，我是手动配置的~~
 - [x] 不同网站的并发任务
@@ -57,7 +57,7 @@ rss2pan -u "https://mikanani.me/RSS/Bangumi?bangumiId=2739&subgroupid=12"
   "mikanani.me": [
     {
       "name": "test",
-      "filter": "简体内嵌",
+      "filter": "/简体|1080p/",
       "url": "https://mikanani.me/RSS/Bangumi?bangumiId=2739&subgroupid=12"
     }
   ],
@@ -73,7 +73,8 @@ rss2pan -u "https://mikanani.me/RSS/Bangumi?bangumiId=2739&subgroupid=12"
 ```
 
 配置了 `filter` 后，标题包含该文字的会被离线。不设置 `filter` 默认离线全部
-> 正则功能还没写
+
+`/简体|\\d{3-4}[pP]/` 使用斜线包裹的正则规则。注意转义规则
 
 cid 是离线到指定的文件夹的 id 。
 获取方法: 浏览器打开 115 的文件，地址栏像 `https://115.com/?cid=2479224057885794455&offset=0&tab=&mode=wangpan`
