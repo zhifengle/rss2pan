@@ -137,8 +137,8 @@ impl Yiyiwu {
         for chunk in item_list.chunks(200) {
             let tasks: Vec<MagnetItem> = chunk
                 .iter()
-                .cloned()
                 .filter(|item| !service.has_item(&item.magnet))
+                .cloned()
                 .collect();
             // 测试用的开关
             if std::env::var("RSS2PAN_LOG").is_ok() {
