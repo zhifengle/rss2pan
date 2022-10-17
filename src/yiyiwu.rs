@@ -135,10 +135,10 @@ impl Yiyiwu {
         config: &RssConfig,
     ) -> anyhow::Result<()> {
         for chunk in item_list.chunks(200) {
-            let tasks: Vec<&str> = chunk
+            let tasks: Vec<MagnetItem> = chunk
                 .iter()
+                .cloned()
                 .filter(|item| !service.has_item(&item.magnet))
-                .map(|item| &*item.magnet)
                 .collect();
             // 测试用的开关
             if std::env::var("RSS2PAN_LOG").is_ok() {
@@ -154,16 +154,19 @@ impl Yiyiwu {
                 log::info!("[{}] has 0 task", config.name);
                 continue;
             }
-            let res = self.add_batch_task(&tasks, config.cid.clone()).await?;
+            let magnet_tasks: Vec<&str> = tasks.iter()
+                .map(|item| &*item.magnet)
+                .collect();
+            let res = self.add_batch_task(&magnet_tasks, config.cid.clone()).await?;
             match res.errcode {
                 0 => {
                     log::info!(
                         "[{}] [{}] add {} tasks",
                         config.name,
                         config.url,
-                        chunk.len()
+                        tasks.len()
                     );
-                    service.save_items(chunk, true)?;
+                    service.save_items(&tasks, true)?;
                 }
                 911 => {
                     log::error!("response {:?}", res);
@@ -174,7 +177,7 @@ impl Yiyiwu {
                 }
                 10008 => {
                     log::warn!("task exist");
-                    service.save_items(chunk, true)?;
+                    service.save_items(&tasks, true)?;
                 }
                 _ => {
                     log::error!("response {:?}", res);

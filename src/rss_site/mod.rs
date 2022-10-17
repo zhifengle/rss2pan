@@ -28,7 +28,7 @@ pub trait MagnetSite {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MagnetItem {
     pub title: String,
     pub link: String,
