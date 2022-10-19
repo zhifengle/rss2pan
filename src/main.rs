@@ -35,11 +35,13 @@ async fn main() -> anyhow::Result<()> {
     }
     if matches.get_one::<bool>("concurrent").copied() == Some(true) {
         if let Err(err) = execute_tasks(&service).await {
-            println!("{}", err);
+            eprintln!("{}", err);
+            std::process::exit(1);
         }
     } else {
         if let Err(err) = execute_all_rss_task(&service).await {
-            println!("{}", err);
+            eprintln!("{}", err);
+            std::process::exit(1);
         }
     }
 
