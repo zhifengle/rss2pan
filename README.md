@@ -64,14 +64,14 @@ rss2pan -u "https://mikanani.me/RSS/Bangumi?bangumiId=2739&subgroupid=12"
   "nyaa.si": [
     {
       "name": "VCB-Studio",
-      "cid: "2479224057885794455",
+      "cid": "2479224057885794455",
       "url": "https://nyaa.si/?page=rss&u=VCB-Studio"
     }
   ],
   "sukebei.nyaa.si": [
     {
       "name": "hikiko123",
-      "cid: "2479224057885794455",
+      "cid": "2479224057885794455",
       "url": "https://sukebei.nyaa.si/?page=rss&u=hikiko123"
     }
   ],
@@ -79,7 +79,7 @@ rss2pan -u "https://mikanani.me/RSS/Bangumi?bangumiId=2739&subgroupid=12"
     {
       "name": "水星的魔女",
       "filter": "简日双语",
-      "cid: "2479224057885794455",
+      "cid": "2479224057885794455",
       "url": "https://share.dmhy.org/topics/rss/rss.xml?keyword=%E6%B0%B4%E6%98%9F%E7%9A%84%E9%AD%94%E5%A5%B3&sort_id=2&team_id=0&order=date-desc"
     }
   ]
