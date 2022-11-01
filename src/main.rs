@@ -29,7 +29,8 @@ async fn main() -> anyhow::Result<()> {
     let url = matches.get_one::<String>("url");
     if url.is_some() {
         if let Err(err) = execute_url_task(&service, &url.unwrap()).await {
-            println!("{}", err);
+            eprintln!("{}", err);
+            std::process::exit(1);
         }
         return Ok(());
     }
