@@ -170,7 +170,7 @@ impl Yiyiwu {
                 }
                 911 => {
                     log::error!("response {:?}", res);
-                    return Err(anyhow::format_err!("115 abnoraml operation"));
+                    return Err(anyhow::format_err!("115 abnormal operation"));
                 }
                 10004 => {
                     log::warn!("wrong links");

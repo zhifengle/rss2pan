@@ -1,6 +1,6 @@
 # Rss2pan
 
-将 Rss 订阅离线下载到 115 网盘。
+将 RSS 订阅离线下载到 115 网盘。
 
 ## 关于
 
@@ -8,7 +8,7 @@
 
 正在尝试用 Rust 实现一遍。
 
-支持 Rss 源: nyaa, dmhy, mikanni
+支持 RSS 源: nyaa, dmhy, mikanni
 
 - [x] 115 离线功能
 - [x] sqlite 存储数据
@@ -44,9 +44,9 @@ rss2pan -u "https://mikanani.me/RSS/Bangumi?bangumiId=2739&subgroupid=12"
 
 ### 注意
 
-日志报 `115 abnoraml operation` 时，说明账号触发了异常验证，需要在浏览器端手动离线，输入验证码后解除。
+日志报 `115 abnormal operation` 时，说明账号触发了异常验证，需要在浏览器端手动离线，输入验证码后解除。
 
-暂时没有想到好的方法处理。现在想到的方式打印一个 URL，打开这个 URL，配合油猴脚本触发验证码。
+> 暂时没有想到好的方法处理。现在想到的方式打印一个 URL，打开这个 URL，配合油猴脚本触发验证码。
 
 ## 配置
 
@@ -91,13 +91,14 @@ rss2pan -u "https://mikanani.me/RSS/Bangumi?bangumiId=2739&subgroupid=12"
 `/简体|\\d{3-4}[pP]/` 使用斜线包裹的正则规则。注意转义规则
 
 cid 是离线到指定的文件夹的 id 。
+
 获取方法: 浏览器打开 115 的文件，地址栏像 `https://115.com/?cid=2479224057885794455&offset=0&tab=&mode=wangpan`
 
 > 其中 2479224057885794455 就是 cid
 
 ### node-site-config.json 配置
 
-配置示例
+配置示例。 设置 【httpsAgent】 表示使用代理连接对应网站。不想使用代理删除对应的配置。
 
 ```json
 {
@@ -122,6 +123,8 @@ cid 是离线到指定的文件夹的 id 。
 #### cookie 配置
 
 Windows 下 如果设置了 headers, 但是没在 headers 里面设置 "cookie": "xxx"。会自动读取命令行指定浏览器的 cookie。默认使用 Chrome
+
+> 浏览器登录 115 后，有时候 rss2pan 不能立即读取到 cookie，需要等待一下再试。
 
 Linux 下使用，必须配置 115 的 cookie。或者指定 Firefox 目录读取 cookie(这项功能我没测试)
 
