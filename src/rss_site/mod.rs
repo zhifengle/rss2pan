@@ -92,7 +92,6 @@ pub async fn get_magnetitem_list(config: &RssConfig) -> Vec<MagnetItem> {
                 }
                 flag
             })
-            .rev()
             .collect()
     } else {
         vec![]
