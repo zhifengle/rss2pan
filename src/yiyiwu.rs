@@ -10,7 +10,7 @@ use crate::{
     request::Ajax,
     rss_config::{get_rss_config_by_url, get_rss_dict, RssConfig},
     rss_site::{get_magnetitem_list, MagnetItem},
-    AJAX_INSTANCE,
+    AJAX_INSTANCE, RSS_JSON,
 };
 
 type FormData = HashMap<String, String>;
@@ -205,7 +205,8 @@ pub async fn execute_all_rss_task(service: &RssService) -> anyhow::Result<()> {
     if !yiyiwu.is_logged().await {
         return Err(anyhow::format_err!("115 need login"));
     }
-    let rss_dict = get_rss_dict(None)?;
+    let rss_json = RSS_JSON.get().unwrap();
+    let rss_dict = get_rss_dict(rss_json)?;
     for (_, v) in rss_dict.iter() {
         for config in v.iter() {
             let item_list = get_magnetitem_list(config).await;
@@ -220,7 +221,8 @@ pub async fn execute_tasks(service: &RssService) -> anyhow::Result<()> {
     if !yiyiwu.is_logged().await {
         return Err(anyhow::format_err!("115 need login"));
     }
-    let rss_dict = get_rss_dict(None)?;
+    let rss_json = RSS_JSON.get().unwrap();
+    let rss_dict = get_rss_dict(rss_json)?;
     let task_list = future::join_all(rss_dict.into_iter().map(|(_, v)| async move {
         let mut task_list: Vec<(RssConfig, Vec<MagnetItem>)> = Vec::with_capacity(v.len());
         for config in v.into_iter() {

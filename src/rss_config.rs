@@ -2,6 +2,8 @@ use std::{path::PathBuf, io::BufReader, collections::HashMap, fs::File};
 
 use serde::{Deserialize, Serialize};
 
+use crate::RSS_JSON;
+
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct RssConfig {
     pub name: String,
@@ -11,7 +13,7 @@ pub struct RssConfig {
     pub expiration: Option<u8>,
 }
 
-pub fn get_rss_dict(path: Option<PathBuf>) -> anyhow::Result<HashMap<String, Vec<RssConfig>>> {
+pub fn get_rss_dict(path: &Option<PathBuf>) -> anyhow::Result<HashMap<String, Vec<RssConfig>>> {
     let file = if let Some(p) = path {
         File::open(p)?
     } else {
@@ -23,7 +25,8 @@ pub fn get_rss_dict(path: Option<PathBuf>) -> anyhow::Result<HashMap<String, Vec
 }
 
 pub fn get_rss_config_by_url(url: &str) -> anyhow::Result<RssConfig> {
-    let rss_dict = get_rss_dict(None)?;
+    let rss_json = RSS_JSON.get().unwrap();
+    let rss_dict = get_rss_dict(rss_json)?;
     let url_obj = url::Url::parse(url)?;
     let site = url_obj.host_str().unwrap().to_string();
     let config = rss_dict

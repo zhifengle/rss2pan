@@ -6,7 +6,7 @@ pub fn build_app() -> Command<'static> {
     let app = Command::new("rss2pan")
         .version(crate_version!())
         .about("rss to pan")
-        // .arg(arg!(-r --rss [rss] "rss json").default_value("rss.json"))
+        .arg(arg!(-r --rss [rss] "rss.json path").value_parser(clap::value_parser!(PathBuf)))
         .arg(arg!(-u --url [url] "rss url"))
         .arg(arg!(-m --concurrent "concurrent request").action(ArgAction::SetTrue))
         .arg(arg!(-c --chrome [chrome] "Chrome's name. Chrome, Chromium, Chrome Beta or Edge is OK.")

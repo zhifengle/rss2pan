@@ -6,6 +6,8 @@ mod rss_config;
 mod rss_site;
 mod yiyiwu;
 
+use std::path::PathBuf;
+
 use app::build_app;
 use db::RssService;
 use once_cell::sync::OnceCell;
@@ -13,6 +15,7 @@ use request::Ajax;
 use yiyiwu::{execute_tasks, execute_url_task, execute_all_rss_task};
 
 static AJAX_INSTANCE: OnceCell<Ajax> = OnceCell::new();
+static RSS_JSON: OnceCell<Option<PathBuf>> = OnceCell::new();
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -23,6 +26,7 @@ async fn main() -> anyhow::Result<()> {
     let app = build_app();
     let matches = app.get_matches();
     AJAX_INSTANCE.get_or_init(|| Ajax::from_matches(&matches));
+    RSS_JSON.get_or_init(|| matches.get_one::<PathBuf>("rss").map(|p| p.clone()));
 
     let service = RssService::new();
 
