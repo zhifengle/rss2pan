@@ -20,6 +20,7 @@
 - [ ] Windows 定时任务
   - ~~懒得写了，我是手动配置的~~
 - [x] 不同网站的并发任务
+- [x] 指定magnet链接或者文件，离线到115
 
 ## 用法
 
@@ -40,6 +41,12 @@ rss2pan -c Edge
 # 指定 rss URL 离线下载
 # 如果 rss.json 存在这条url 的配置，会读取配置。没有配置，默认离线到 115 的默认目录
 rss2pan -u "https://mikanani.me/RSS/Bangumi?bangumiId=2739&subgroupid=12"
+
+# 查看 magnet 子命令帮助
+rss2pan magnet -h
+rss2pan magnet --link "magnet:?xt=urn:btih:12345" --cid "12345"
+# 离线包含 magnet 的 txt 文件; 按行分割
+rss2pan magnet --txt magnet.txt --cid "12345"
 ```
 
 ### 注意
