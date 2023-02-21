@@ -31,9 +31,18 @@ async fn main() -> anyhow::Result<()> {
     RSS_JSON.get_or_init(|| matches.get_one::<PathBuf>("rss").map(|p| p.clone()));
 
     if let Some(("magnet", matches)) = matches.subcommand() {
+        let link = matches.get_one::<String>("link").cloned();
         let txt = matches.get_one::<PathBuf>("txt").cloned();
         let cid = matches.get_one::<String>("cid").cloned();
-        let magnets = get_magnet_list_by_txt(&txt.unwrap())?;
+        let mut magnets: Vec<String> = Vec::new();
+        if txt.is_some() {
+            magnets = get_magnet_list_by_txt(&txt.unwrap())?;
+        } else if link.is_some() {
+            magnets.push(link.unwrap());
+        } else {
+            eprintln!("magnet link or txt file is required");
+            std::process::exit(1);
+        }
         if let Err(err) = execute_magnets_task(&magnets, cid).await {
             eprintln!("{}", err);
             std::process::exit(1);
