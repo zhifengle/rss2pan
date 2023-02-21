@@ -154,10 +154,10 @@ impl Yiyiwu {
                 log::info!("[{}] has 0 task", config.name);
                 continue;
             }
-            let magnet_tasks: Vec<&str> = tasks.iter()
-                .map(|item| &*item.magnet)
-                .collect();
-            let res = self.add_batch_task(&magnet_tasks, config.cid.clone()).await?;
+            let magnet_tasks: Vec<&str> = tasks.iter().map(|item| &*item.magnet).collect();
+            let res = self
+                .add_batch_task(&magnet_tasks, config.cid.clone())
+                .await?;
             match res.errcode {
                 0 => {
                     log::info!(
@@ -236,6 +236,36 @@ pub async fn execute_tasks(service: &RssService) -> anyhow::Result<()> {
         for (config, item_list) in task {
             yiyiwu.execute_task(service, &item_list, &config).await?
         }
+    }
+    Ok(())
+}
+
+pub async fn execute_magnets_task(tasks: &[String], cid: Option<String>) -> anyhow::Result<()> {
+    let yiyiwu = Yiyiwu;
+    if !yiyiwu.is_logged().await {
+        return Err(anyhow::format_err!("115 need login"));
+    }
+    for chunk in tasks.chunks(200) {
+        let chunk_tasks = chunk.iter().map(|item| &**item).collect::<Vec<&str>>();
+        let res = yiyiwu.add_batch_task(&chunk_tasks, cid.clone()).await?;
+        match res.errcode {
+            0 => {
+                log::info!("[magnet] add {} tasks", chunk.len());
+            }
+            911 => {
+                log::error!("response {:?}", res);
+                return Err(anyhow::format_err!("115 abnormal operation"));
+            }
+            10004 => {
+                log::warn!("wrong links");
+            }
+            10008 => {
+                log::warn!("task exist");
+            }
+            _ => {
+                log::error!("response {:?}", res);
+            }
+        };
     }
     Ok(())
 }

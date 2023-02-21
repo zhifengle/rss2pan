@@ -4,6 +4,7 @@ mod downloader;
 mod request;
 mod rss_config;
 mod rss_site;
+mod utils;
 mod yiyiwu;
 
 use std::path::PathBuf;
@@ -12,7 +13,8 @@ use app::build_app;
 use db::RssService;
 use once_cell::sync::OnceCell;
 use request::Ajax;
-use yiyiwu::{execute_tasks, execute_url_task, execute_all_rss_task};
+use utils::get_magnet_list_by_txt;
+use yiyiwu::{execute_all_rss_task, execute_magnets_task, execute_tasks, execute_url_task};
 
 static AJAX_INSTANCE: OnceCell<Ajax> = OnceCell::new();
 static RSS_JSON: OnceCell<Option<PathBuf>> = OnceCell::new();
@@ -27,6 +29,17 @@ async fn main() -> anyhow::Result<()> {
     let matches = app.get_matches();
     AJAX_INSTANCE.get_or_init(|| Ajax::from_matches(&matches));
     RSS_JSON.get_or_init(|| matches.get_one::<PathBuf>("rss").map(|p| p.clone()));
+
+    if let Some(("magnet", matches)) = matches.subcommand() {
+        let txt = matches.get_one::<PathBuf>("txt").cloned();
+        let cid = matches.get_one::<String>("cid").cloned();
+        let magnets = get_magnet_list_by_txt(&txt.unwrap())?;
+        if let Err(err) = execute_magnets_task(&magnets, cid).await {
+            eprintln!("{}", err);
+            std::process::exit(1);
+        }
+        return Ok(());
+    }
 
     let service = RssService::new();
 
