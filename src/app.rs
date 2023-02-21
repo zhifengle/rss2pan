@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::{arg, crate_version, ArgAction, Command};
 
-pub fn build_app() -> Command {
+pub fn build_app() -> Command<'static> {
     let app = Command::new("rss2pan")
         .version(crate_version!())
         .about("rss to pan")
