@@ -118,6 +118,11 @@ cid 是离线到指定的文件夹的 id 。
   "sukebei.nyaa.si": {
     "httpsAgent": "httpsAgent"
   },
+  "mikanime.tv": {
+    "headers": {
+      "Referer": "https://mikanime.tv/"
+    }
+  },
   "mikanani.me": {
     "httpsAgent": "httpsAgent",
     "headers": {
