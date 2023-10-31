@@ -6,6 +6,7 @@ mod rss_config;
 mod rss_site;
 mod utils;
 mod yiyiwu;
+mod m115;
 
 use std::path::PathBuf;
 
