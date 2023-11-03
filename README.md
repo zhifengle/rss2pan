@@ -10,6 +10,9 @@
 
 支持 RSS 源: nyaa, dmhy, mikanni
 
+<details>
+<summary><code><strong>「 点击查看 实现功能 」</strong></code></summary>
+
 - [x] 115 离线功能
 - [x] sqlite 存储数据
 - [x] 实现 cli
@@ -20,7 +23,9 @@
 - [ ] Windows 定时任务
   - ~~懒得写了，我是手动配置的~~
 - [x] 不同网站的并发任务
-- [x] 指定magnet链接或者文件，离线到115
+- [x] 指定 magnet 链接或者文件，离线到 115
+
+</details>
 
 ## 用法
 
@@ -53,11 +58,13 @@ rss2pan magnet --txt magnet.txt --cid "12345"
 
 日志报 `115 abnormal operation` 时，说明账号触发了异常验证，需要在浏览器端手动离线，输入验证码后解除。
 
-> 暂时没有想到好的方法处理。现在想到的方式打印一个 URL，打开这个 URL，配合油猴脚本触发验证码。
+_推荐使用_ [zhifengle/rss2cloud](https://github.com/zhifengle/rss2cloud)
+具体见 [#2](https://github.com/zhifengle/rss2pan/issues/2)
 
 ## 配置
 
-### 配置文件 rss.json
+<details>
+<summary><code><strong>「 点击查看 配置文件 rss.json 」</strong></code></summary>
 
 ```json
 {
@@ -93,6 +100,8 @@ rss2pan magnet --txt magnet.txt --cid "12345"
 }
 ```
 
+</details>
+
 配置了 `filter` 后，标题包含该文字的会被离线。不设置 `filter` 默认离线全部
 
 `/简体|\\d{3-4}[pP]/` 使用斜线包裹的正则规则。注意转义规则
@@ -103,7 +112,8 @@ cid 是离线到指定的文件夹的 id 。
 
 > 其中 2479224057885794455 就是 cid
 
-### node-site-config.json 配置
+<details>
+<summary><code><strong>「 点击查看 node-site-config.json 配置 」</strong></code></summary>
 
 配置示例。 设置 【httpsAgent】 表示使用代理连接对应网站。不想使用代理删除对应的配置。
 
@@ -131,6 +141,8 @@ cid 是离线到指定的文件夹的 id 。
   }
 }
 ```
+
+</details>
 
 #### cookie 配置
 
