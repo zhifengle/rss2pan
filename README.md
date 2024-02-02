@@ -2,7 +2,9 @@
 
 将 RSS 订阅离线下载到 115 网盘。
 
-<span style="color:tomato">推荐使用</span> [zhifengle/rss2cloud](https://github.com/zhifengle/rss2cloud)
+> [!note]  
+> Web API 会触发验证码
+> 推荐使用 [zhifengle/rss2cloud](https://github.com/zhifengle/rss2cloud)
 具体见 [#2](https://github.com/zhifengle/rss2pan/issues/2)
 
 ## 关于
