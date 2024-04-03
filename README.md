@@ -45,8 +45,6 @@ rss2pan -h
 rss2pan
 # 并发请求 rss 网站。然后再添加 115 离线任务
 rss2pan -m
-# 读取和使用 Edge 的 cookie
-rss2pan -c Edge
 
 # 指定 rss URL 离线下载
 # 如果 rss.json 存在这条url 的配置，会读取配置。没有配置，默认离线到 115 的默认目录
@@ -151,11 +149,7 @@ cid 是离线到指定的文件夹的 id 。
 
 #### cookie 配置
 
-Windows 下 如果设置了 headers, 但是没在 headers 里面设置 "cookie": "xxx"。会自动读取命令行指定浏览器的 cookie。默认使用 Chrome
-
-> 浏览器登录 115 后，有时候 rss2pan 不能立即读取到 cookie，需要等待一下再试。
-
-Linux 下使用，必须配置 115 的 cookie。或者指定 Firefox 目录读取 cookie(这项功能我没测试)
+在 `node-site-config.json` 文件里面配置 115.com cookie
 
 ```json
 {

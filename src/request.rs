@@ -1,17 +1,26 @@
 use std::{
-    env,
+    env, fs,
     path::{Path, PathBuf},
     str::FromStr,
 };
 
 use clap::ArgMatches;
-use gcookie::{gcookie_chrome, gcookie_firefox};
-use log::info;
 use reqwest::{
     header::{HeaderMap, HeaderName},
     Client, Method, RequestBuilder,
 };
 use serde_json::Value;
+
+fn load_yiyiwu_cookies() -> Option<String> {
+    if !Path::new(".cookies").exists() {
+        return None;
+    }
+    let result = fs::read_to_string(".cookies");
+    if let Ok(s) = result {
+        return Some(s);
+    }
+    None
+}
 
 pub fn build_proxy_client() -> Client {
     let mut proxy_url = "http://127.0.0.1:10809".to_string();
@@ -46,6 +55,7 @@ pub struct CookieConfig {
     chrome_path: Option<PathBuf>,
     firefox_path: Option<PathBuf>,
 }
+
 impl CookieConfig {
     pub fn new(matches: &ArgMatches) -> Self {
         Self {
@@ -60,7 +70,6 @@ pub struct Ajax {
     inner_client: reqwest::Client,
     inner_client_proxy: reqwest::Client,
     site_config: Value,
-    cookie_config: CookieConfig,
 }
 
 fn get_site_config(filename: Option<PathBuf>) -> serde_json::Value {
@@ -93,7 +102,6 @@ impl Ajax {
             inner_client: build_client(),
             inner_client_proxy: build_proxy_client(),
             site_config: get_site_config(None),
-            cookie_config: CookieConfig::default(),
         }
     }
     pub fn from_matches(matches: &ArgMatches) -> Self {
@@ -101,23 +109,12 @@ impl Ajax {
             inner_client: build_client(),
             inner_client_proxy: build_proxy_client(),
             site_config: get_site_config(None),
-            cookie_config: CookieConfig::new(matches),
         }
     }
     fn get_cookie(&self, url: &str) -> Option<String> {
         let mut cookie = None;
-        if self.cookie_config.firefox_path.is_some() {
-            info!("get {} cookie from firefox", url);
-            let path = &self.cookie_config.firefox_path.as_ref();
-            if let Ok(c) = gcookie_firefox(url, path.unwrap()) {
-                cookie = Some(c);
-            }
-            return cookie;
-        }
-        let chrome = self.cookie_config.chrome.as_deref();
-        let chrome_path = self.cookie_config.chrome_path.as_ref();
-        if let Ok(c) = gcookie_chrome(url, chrome, chrome_path) {
-            cookie = Some(c);
+        if url.contains("115.com") {
+            cookie = load_yiyiwu_cookies();
         }
         cookie
     }
