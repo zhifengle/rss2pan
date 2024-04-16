@@ -1,3 +1,4 @@
+mod acgnx;
 mod dmhy;
 mod mikanani;
 mod nyaa;
@@ -8,6 +9,7 @@ use rss::{Channel, Item};
 use std::io::BufReader;
 use std::{fs::File, path::PathBuf};
 
+pub use acgnx::*;
 pub use dmhy::*;
 pub use mikanani::*;
 pub use nyaa::*;
@@ -52,6 +54,9 @@ pub fn get_site(name: &str) -> Box<dyn MagnetSite> {
         "nyaa.si" => Box::new(Nyaa),
         "sukebei.nyaa.si" => Box::new(Nyaa),
         "share.dmhy.org" => Box::new(Dmhy),
+        "share.acgnx.se" => Box::new(Acgnx),
+        "www.acgnx.se" => Box::new(Acgnx),
+        "share.acgnx.net" => Box::new(Acgnx),
         _ => panic!("invalid name"),
     }
 }
@@ -127,6 +132,20 @@ mod tests {
             .collect();
         let res = service.save_items(&items, true);
         assert!(res.is_ok());
+    }
+    #[test]
+    fn test_get_acgnx_items() {
+        let channel = get_feed_by_file("tests/acgnx.rss".into());
+        assert!(channel.is_ok());
+        let channel = channel.unwrap();
+        let site = get_site("share.acgnx.net");
+        let items: Vec<MagnetItem> = channel
+            .items()
+            .iter()
+            .map(|item| site.get_magnet_item(item))
+            .collect();
+        assert_eq!(items.len(), 50);
+        assert_eq!(items[0].magnet, "magnet:?xt=urn:btih:4355c456f7b03ea007e998d101f858087daf4d26");
     }
     #[test]
     fn test_re() {

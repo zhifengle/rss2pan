@@ -49,23 +49,6 @@ pub fn build_client() -> Client {
     client
 }
 
-#[derive(Default, Clone)]
-pub struct CookieConfig {
-    chrome: Option<String>,
-    chrome_path: Option<PathBuf>,
-    firefox_path: Option<PathBuf>,
-}
-
-impl CookieConfig {
-    pub fn new(matches: &ArgMatches) -> Self {
-        Self {
-            chrome: matches.get_one::<String>("chrome").map(|c| c.to_string()),
-            chrome_path: matches.get_one::<PathBuf>("chrome_path").map(|p| p.clone()),
-            firefox_path: matches.get_one::<PathBuf>("firefox").map(|p| p.clone()),
-        }
-    }
-}
-
 pub struct Ajax {
     inner_client: reqwest::Client,
     inner_client_proxy: reqwest::Client,
@@ -104,7 +87,7 @@ impl Ajax {
             site_config: get_site_config(None),
         }
     }
-    pub fn from_matches(matches: &ArgMatches) -> Self {
+    pub fn from_matches(_matches: &ArgMatches) -> Self {
         Self {
             inner_client: build_client(),
             inner_client_proxy: build_proxy_client(),

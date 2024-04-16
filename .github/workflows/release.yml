@@ -4,6 +4,12 @@ permissions:
   contents: write
 
 on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        type: string
+        description: 'Release Tag'
+        required: true
   push:
     tags:
       - v[0-9]+.*
@@ -19,10 +25,23 @@ jobs:
             os: ubuntu-latest
           - target: x86_64-pc-windows-gnu
             os: windows-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: taiki-e/upload-rust-binary-action@v1
+        if: ${{ inputs.release_tag.length > 0 }}
+        with:
+          bin: rss2pan
+          target: ${{ matrix.target }}
+          tar: unix
+          zip: windows
+          # checksum: sha256
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ inputs.release_tag }}
+      - uses: taiki-e/upload-rust-binary-action@v1
+        if: ${{ inputs.release_tag.length == 0 }}
         with:
           bin: rss2pan
           target: ${{ matrix.target }}
