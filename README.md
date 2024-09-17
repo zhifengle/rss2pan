@@ -34,9 +34,16 @@
 
 ## 用法
 
-在同一目录下面，配置好 `rss.json` 和 `node-site-config.json`
+在同一目录下面，配置好 `rss.json` 、 `node-site-config.json` 和 `.cookies`
 
 在命令行运行 `rss2pan`
+
+`.cookies` 文件内容是115的cookie字符串。手动从浏览器复制或者使用 [gcookie](https://github.com/zhifengle/gcookie)
+
+```bat
+REM 使用 gcookie 读取浏览器的 cookie
+gcookie.exe 115.com > .cookies
+```
 
 ```bash
 # 查看帮助

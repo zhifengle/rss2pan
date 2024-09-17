@@ -44,7 +44,7 @@ jobs:
           zip: windows
           # checksum: sha256
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.ref }}
       - uses: taiki-e/upload-rust-binary-action@v1
         with:
           bin: rss2pan
