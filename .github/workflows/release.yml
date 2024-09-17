@@ -1,20 +1,26 @@
-name: Release
+name: Publish Release
+on:
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
-
-on:
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        type: string
-        description: 'Release Tag'
-        required: true
-  push:
-    tags:
-      - v[0-9]+.*
+  packages: write
 
 jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body_path: ./CHANGELOG.md
   upload-assets:
     strategy:
       matrix:
@@ -31,7 +37,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: taiki-e/upload-rust-binary-action@v1
-        if: ${{ inputs.release_tag.length > 0 }}
         with:
           bin: rss2pan
           target: ${{ matrix.target }}
@@ -39,9 +44,8 @@ jobs:
           zip: windows
           # checksum: sha256
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: ${{ inputs.release_tag }}
+          ref: ${{ github.ref_name }}
       - uses: taiki-e/upload-rust-binary-action@v1
-        if: ${{ inputs.release_tag.length == 0 }}
         with:
           bin: rss2pan
           target: ${{ matrix.target }}
